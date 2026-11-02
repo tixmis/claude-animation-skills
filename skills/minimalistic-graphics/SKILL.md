@@ -1,6 +1,6 @@
 ---
 name: minimalistic-graphics
-description: Makes a minimal black-and-white line-art animation for a reel. Thin outlined steps rise one by one, a white dot hops up them, and at the top an orbit draws around it and a short second line swaps in. One quiet lowercase line of text on top. Use when the user runs /minimalistic-graphics or asks for simple black and white motion graphics, a calm self-improvement visual or line art with one moving dot.
+description: Makes a minimal black-and-white line-art animation for a reel. Thin outlined steps rise one by one, a white dot hops up them, and at the top an orbit draws around it and a short second line swaps in. One quiet lowercase line of text on top. Use when the user runs /minimalistic-graphics or asks for simple black and white motion graphics, a calm self-improvement visual or line art with one moving dot. Renders 9:16, 16:9, 1:1 or 4:5, in English, Russian or Hebrew, optionally with a transparent background for editing.
 ---
 
 # /minimalistic-graphics
@@ -30,7 +30,7 @@ Needs ffmpeg and Node.
 2. **Spec.** Write `<name>.minimal.json` (below).
 3. **Build.** Run `python3 "$SKILL_DIR/build.py" <spec.json>`. It takes about 10 seconds. Add `--snap 2.4` for a quick PNG.
 4. **Check** the sheet: the text sits on one line, and the last frames show the orbit around the dot.
-5. **Hand over** the mp4 path.
+5. **Hand over** the video path (`.mp4`, or `.mov` / `.webm` with `alpha`).
 
 ## Spec
 ```json
@@ -40,6 +40,14 @@ Needs ffmpeg and Node.
 - **`steps`**: 3 to 7. More steps hop faster, and the video gets a little longer (3.8 s with 5 steps).
 - **`light`**: black lines on white.
 - **`hold`** (optional): extra seconds at the end. **`out`** (optional): the output path.
+
+## Frame, language, transparency
+Shared by every quick skill; details in `kit/FRAME.md`. Decide them from the task before writing the spec:
+- **`format`**: `"9:16"` (default, reels and stories), `"16:9"` (film or YouTube insert), `"4:5"` or `"1:1"` (feed posts).
+- **`lang`**: `"en"`, `"ru"` or `"he"`. Left out, it follows the spec's text. Write the text in that language yourself; Hebrew lays out right to left.
+- **`alpha`**: `true` for a transparent ProRes 4444 `.mov` an editor lays over footage (`"webm"` for the web). The sheet shows it over grey.
+- **`safe`**: the box on the contact sheet. Defaults to Instagram for 9:16 and a 5% broadcast margin otherwise.
+- With `alpha`, keep `"light": false` for white line art over dark footage, `true` for black over light footage. Russian follows the same lowercase rule; Hebrew has no case.
 
 ## Taste
 - Quiet and plain. Lowercase, no emojis, no bold, no exclamation marks.

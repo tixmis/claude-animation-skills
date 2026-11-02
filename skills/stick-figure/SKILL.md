@@ -55,3 +55,10 @@ A reel is one folder:
 - Captions: Poppins Bold, white with a dark outline, 1 to 2 words, lowercase, no punctuation (`capText()` in `main.js` does it; digits and `%` stay). No em dashes anywhere on screen.
 - Bright saturated palette, ink outlines (`#221c22`), soft contact shadows, slow push-ins with handheld drift, whip transitions with motion blur. An impact is a burst, a shake and a flash.
 - SFX sit under the voice (gain about 0.38). The music is a quiet plucked underscore, ducked under the voice, never a loud loop at the start.
+
+## Languages
+The engine draws its own captions, so Russian or Hebrew needs three things the quick skills get from the kit:
+- **Voice:** the free Kokoro voice and `kit/words.py` (Parakeet word timings) are English-only. For Russian or Hebrew use the user's own recording or ElevenLabs, and time the captions by hand from the waveform or with a multilingual aligner.
+- **Fonts:** add Heebo (Hebrew) or a Cyrillic font from `kit/fonts/intl/` to the project's fonts and its CSS, since the engine does not go through the kit's font injection.
+- **Direction:** Hebrew captions need `dir="rtl"` on the caption element.
+Say this to the user before starting a non-English explainer.

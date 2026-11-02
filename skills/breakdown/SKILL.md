@@ -1,6 +1,6 @@
 ---
 name: breakdown
-description: Makes a 3D exploded-view animation for a reel. A phone floats on a dark studio backdrop, comes apart layer by layer (glass, screen, frame, board and battery, back), and each part gets a thin leader line and a label. Use when the user runs /breakdown or asks for an exploded view, a "what's inside" teardown or a labelled 3D breakdown of a device.
+description: Makes a 3D exploded-view animation for a reel. A phone floats on a dark studio backdrop, comes apart layer by layer (glass, screen, frame, board and battery, back), and each part gets a thin leader line and a label. Use when the user runs /breakdown or asks for an exploded view, a "what's inside" teardown or a labelled 3D breakdown of a device. Renders 9:16, 16:9, 1:1 or 4:5, in English, Russian or Hebrew, optionally with a transparent background for editing.
 ---
 
 # /breakdown
@@ -31,7 +31,7 @@ Needs ffmpeg and Node. It renders with WebGL in headless Chrome.
 2. **Spec.** Write `<name>.breakdown.json` (below).
 3. **Build.** Run `python3 "$SKILL_DIR/build.py" <spec.json>`. A 3D render takes about 1.5 minutes, most of it HyperFrames waiting on WebGL (a `sub_timeline_readiness_timeout` warning is normal). Run with `--snap 3.8` first to check the labels.
 4. **Check** the sheet: every label sits right of the phone and inside the red frame, and the numbers run 01 to 06 from top to bottom.
-5. **Hand over** the mp4 path.
+5. **Hand over** the video path (`.mp4`, or `.mov` / `.webm` with `alpha`).
 
 ## Spec
 ```json
@@ -54,6 +54,14 @@ The spec changes words, not shapes. For another flat, layered object (a tablet, 
 - Each `part(y)` is one layer; `y` is how high it floats when exploded. `Y0` holds the heights when assembled, and `ORDER` says which layer leaves first.
 - `ANCHORS` says where each label's leader line starts: `[part index, [x, y, z] on that part]`.
 Check with `--snap 1.0,3.8` after every change: assembled at 1.0, exploded and labelled at 3.8.
+
+## Frame, language, transparency
+Shared by every quick skill; details in `kit/FRAME.md`. Decide them from the task before writing the spec:
+- **`format`**: `"9:16"` (default, reels and stories), `"16:9"` (film or YouTube insert), `"4:5"` or `"1:1"` (feed posts).
+- **`lang`**: `"en"`, `"ru"` or `"he"`. Left out, it follows the spec's text. Write the text in that language yourself; Hebrew lays out right to left.
+- **`alpha`**: `true` for a transparent ProRes 4444 `.mov` an editor lays over footage (`"webm"` for the web). The sheet shows it over grey.
+- **`safe`**: the box on the contact sheet. Defaults to Instagram for 9:16 and a 5% broadcast margin otherwise.
+- Write the labels, title and date in the chosen language. In 16:9 the camera moves in and the label column sits to the right of the phone.
 
 ## Taste
 - Six labels at most, short and plain. Notes are facts or one dry joke, never slogans.

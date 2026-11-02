@@ -15,13 +15,32 @@ Skills for Claude Code that make animations for reels, with no footage needed. Y
 
 See them moving: **[novitckii.com/resources/animation-skills](https://novitckii.com/resources/animation-skills/)**
 
+## What this fork adds
+
+This is a fork of [artemnovitckii/claude-animation-skills](https://github.com/artemnovitckii/claude-animation-skills). On top of the original, the four quick skills take a few extra spec fields (all optional; leave them out and you get the original 9:16 reel):
+
+| Field | What it does |
+|---|---|
+| `"format": "16:9"` | Frame shape: `9:16`, `16:9`, `1:1` or `4:5`. Each skill has its own layout per shape. |
+| `"lang": "he"` | `en`, `ru` or `he`, guessed from the text when left out. Hebrew lays out right to left; numbers and the templates' own words follow the language. |
+| `"alpha": true` | Transparent ProRes 4444 `.mov` (or `"webm"`) to lay over footage in an editor. |
+| `"safe": "broadcast"` | Which safe area the contact sheet marks: `instagram`, `social`, `broadcast` or `none`. |
+
+```
+/graph trees planted per year for a film insert, 16:9 with transparency, in Hebrew
+/minimalistic-graphics каждый шаг кажется мелким, пока не оглянешься — 4:5 for the feed
+/map-route from home to the beach, 12 min, 2.8 km, in Hebrew
+```
+
+Hebrew (Heebo) and Cyrillic glyphs are added to the templates' fonts automatically. How it works and how to make a new template support it: [`kit/FRAME.md`](kit/FRAME.md). The explainer engines are still English-first; see "Languages" in their SKILL.md.
+
 ## Install
 
 You need macOS or Linux with **ffmpeg**, **Node.js 18+** and **Python 3.9+**.
 
 ```bash
 brew install ffmpeg node        # if you don't have them
-git clone https://github.com/artemnovitckii/claude-animation-skills.git ~/claude-animation-skills
+git clone https://github.com/tixmis/claude-animation-skills.git ~/claude-animation-skills
 cd ~/claude-animation-skills && ./install.sh
 ```
 
@@ -37,7 +56,7 @@ To update later, run `git pull && ./install.sh`.
 
 **It's also packaged as a Claude Code plugin.** Run these inside Claude Code:
 ```
-/plugin marketplace add artemnovitckii/claude-animation-skills
+/plugin marketplace add tixmis/claude-animation-skills
 /plugin install animation-skills@claude-animation-skills
 ```
 Plugin skills are namespaced (`/animation-skills:graph`). The git clone above is the route tested end to end.
@@ -67,7 +86,8 @@ skills/<name>/build.py          spec.json -> template.html -> HyperFrames -> mp4
 skills/<name>/template.html     the animation (GSAP, or three.js for the 3D ones)
 skills/stick-figure/engine/     canvas engine, voice + timing tools, make.sh, and the pirate reel as the template
 skills/zach-d-films/engine/     three.js engine (people, props, effects, renderer) and the armour short as the example
-kit/anim.py                     shared: fill a template, render, snapshots, contact sheet
+kit/anim.py                     shared: fill a template, formats, alpha, languages, render, snapshots, contact sheet
+kit/FRAME.md                    the format / lang / alpha / safe fields, and how a template supports them
 kit/words.py                    word timings for a voiceover (Parakeet, on your computer)
 kit/setup.sh                    one-time setup
 ```
@@ -79,7 +99,7 @@ To add a quick skill, copy a folder like `skills/graph`, change `template.html` 
 - [HyperFrames](https://github.com/heygen-com/hyperframes) by HeyGen renders the quick skills.
 - [three.js](https://threejs.org) draws the 3D, [GSAP](https://gsap.com) drives the 2D animation and [Playwright](https://playwright.dev) runs the engines' headless Chrome. They are installed at setup, not included here.
 - The free voice is [Kokoro](https://github.com/thewh1teagle/kokoro-onnx) and the word timings come from NVIDIA's Parakeet through [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx). The models are downloaded at setup, not included here.
-- The fonts are Inter, Inter Tight, Poppins, JetBrains Mono, Montserrat and Lora, all under the SIL Open Font License.
+- The fonts are Inter, Inter Tight, Poppins, JetBrains Mono, Montserrat, Lora and Heebo, all under the SIL Open Font License.
 - `/zach-d-films` is named after the style of short it makes. It isn't affiliated with Zack D. Films.
 
 Made by [Artem Novitckii](https://novitckii.com). MIT licensed.

@@ -1,6 +1,6 @@
 ---
 name: map-route
-description: Makes a 3D map animation for a reel. A clean white city with parks and a river, a coloured route that draws itself from start to destination while the camera follows, a red pin that drops with a bounce, an ETA card that counts down and a destination card. Use when the user runs /map-route or asks for an animated route, a "from A to B" map, a journey or a commute animation.
+description: Makes a 3D map animation for a reel. A clean white city with parks and a river, a coloured route that draws itself from start to destination while the camera follows, a red pin that drops with a bounce, an ETA card that counts down and a destination card. Use when the user runs /map-route or asks for an animated route, a "from A to B" map, a journey or a commute animation. Renders 9:16, 16:9, 1:1 or 4:5, in English, Russian or Hebrew.
 ---
 
 # /map-route
@@ -47,6 +47,14 @@ Needs ffmpeg and Node. It renders with WebGL in headless Chrome.
 
 ## Changing the route
 The route shape is fixed: up, right, up, right, ending at the pin. To change it, copy `"$SKILL_DIR/template.html"` next to the spec, edit `WP` in the copy (`[x, z]` points; every corner must sit on a street, which run along multiples of 4; `x` from -36 to 36, `z` from -88 to 24, and north is negative `z`), and add `"template": "template.html"` to the spec. The camera's final pull-back target (`new THREE.Vector3(3, 0, -27)`) and the label spots (`LBL`) are tuned for the default route, so move them with it and check with `--snap`.
+
+## Frame, language, transparency
+Shared by every quick skill; details in `kit/FRAME.md`. Decide them from the task before writing the spec:
+- **`format`**: `"9:16"` (default, reels and stories), `"16:9"` (film or YouTube insert), `"4:5"` or `"1:1"` (feed posts).
+- **`lang`**: `"en"`, `"ru"` or `"he"`. Left out, it follows the spec's text. Write the text in that language yourself; Hebrew lays out right to left.
+- **`safe`**: the box on the contact sheet. Defaults to Instagram for 9:16 and a 5% broadcast margin otherwise.
+- No `alpha`: the city is the background.
+- **`words`** (optional): overrides the template's own words, e.g. `{"min": "мин", "arrived": "На месте", "to_go": "осталось", "in": "за"}`. Russian and Hebrew defaults are built in, and `"unit": "km"` shows as `км` / `ק״מ`.
 
 ## Taste
 - Short, real-sounding names. The destination card holds about 26 characters.

@@ -5,9 +5,9 @@
 @font-face{font-family:'Inter';font-weight:600;src:url(fonts/inter-600-normal.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:700;src:url(fonts/inter-700-normal.woff2) format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:1080px;height:1920px;overflow:hidden;background:#eef0f1}
-#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:#eef0f1;font-family:'Inter',sans-serif}
-#c{position:absolute;left:0;top:0;width:1080px;height:1920px;display:block}
+html,body{width:__W__px;height:__H__px;overflow:hidden;background:#eef0f1}
+#root{position:relative;width:__W__px;height:__H__px;overflow:hidden;background:#eef0f1;font-family:'Inter',sans-serif}
+#c{position:absolute;left:0;top:0;width:__W__px;height:__H__px;display:block}
 .lbl{position:absolute;left:0;top:0;transform:translate(-50%,-50%);font:600 27px 'Inter';color:#77797c;white-space:nowrap;letter-spacing:.01em;
   text-shadow:0 0 4px #fff,0 0 4px #fff,0 0 8px #fff;opacity:0}
 #card{position:absolute;left:0;top:0;transform:translate(-50%,-100%);background:#fff;border-radius:26px;padding:22px 30px 24px;
@@ -24,8 +24,8 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:#eef0f1}
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
 </head>
 <body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="1080" data-height="1920">
-<canvas id="c" width="1080" height="1920"></canvas>
+<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="__W__" data-height="__H__">
+<canvas id="c" width="__W__" height="__H__"></canvas>
 <div class="lbl" id="l0"></div>
 <div class="lbl" id="l1"></div>
 <div class="lbl" id="l2"></div>
@@ -38,13 +38,26 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:#eef0f1}
 import * as THREE from "three";
 
 const SPEC = __SPEC__;
-const W = 1080, H = 1920, DUR = 4.0;
+const F = window.FRAME || { format: '9:16', w: 1080, h: 1920, rtl: false, safe: { l: 100, t: 220, r: 100, b: 420 } };
+const W = F.w, H = F.h, DUR = 4.0;
+const SAFE_L = F.safe.l, SAFE_T = F.safe.t, SAFE_R = W - F.safe.r, SAFE_B = H - F.safe.b;   // the uncovered box
+const WORDS = {   // template words per language; SPEC.words overrides any of them
+  en: { min: 'min', arrived: 'Arrived', to_go: 'to go', in: 'in', km: 'km', mi: 'mi' },
+  ru: { min: 'мин', arrived: 'На месте', to_go: 'осталось', in: 'за', km: 'км', mi: 'миль' },
+  he: { min: 'דק׳', arrived: 'הגעת', to_go: 'נותרו', in: 'תוך', km: 'ק״מ', mi: 'מייל' },
+};
+const WD = Object.assign({}, WORDS[F.lang] || WORDS.en, SPEC.words || {});
+{
+  const eta = document.getElementById('eta');
+  eta.style.top = (SAFE_T + 30) + 'px';
+  if (F.rtl) { eta.style.left = 'auto'; eta.style.right = (F.safe.r + 10) + 'px'; } else eta.style.left = (SAFE_L + 10) + 'px';
+}
 const ACC = SPEC.accent;
 document.documentElement.style.setProperty('--accent', ACC);
-const KM = Number(SPEC.distance), MIN = Number(SPEC.minutes), UNIT = SPEC.unit;
+const KM = Number(SPEC.distance), MIN = Number(SPEC.minutes), UNIT = WD[SPEC.unit] || SPEC.unit;
 const fmtD = (x) => `${x.toFixed(1).replace(/\.0$/, '')} ${UNIT}`;
 document.getElementById('cardn').textContent = SPEC.destination;
-document.getElementById('cardd').textContent = `${MIN} min · ${fmtD(KM)}`;
+document.getElementById('cardd').textContent = `${MIN} ${WD.min} · ${fmtD(KM)}`;
 SPEC.places.slice(0, 5).forEach((p, i) => { document.getElementById('l' + i).textContent = p || ''; });
 // ------------------------------------------------------------ seeded random
 let seed = SPEC.seed;
@@ -284,16 +297,16 @@ function renderAt(t) {
     const [sx, sy] = project(x, .3, z);
     const el = lblEls[i];
     el.style.transform = `translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) translate(-50%,-50%)`;
-    const inside = sx > 140 && sx < 940 && sy > 400 && sy < 1560;
+    const inside = sx > SAFE_L + 40 && sx < SAFE_R - 40 && sy > SAFE_T + 180 && sy < SAFE_B + 60;
     el.style.opacity = (inside ? 1 : 0) * smooth(.15, .5, t);
   });
   const left = KM * (1 - pr);
-  etan.textContent = pr >= 1 ? 'Arrived' : `${Math.max(1, Math.round(MIN * (1 - pr)))} min`;
-  etad.textContent = pr >= 1 ? `${fmtD(KM)} in ${MIN} min` : `${fmtD(Math.max(.1, left))} to go`;
+  etan.textContent = pr >= 1 ? WD.arrived : `${Math.max(1, Math.round(MIN * (1 - pr)))} ${WD.min}`;
+  etad.textContent = pr >= 1 ? `${fmtD(KM)} ${WD.in} ${MIN} ${WD.min}` : `${fmtD(Math.max(.1, left))} ${WD.to_go}`;
   const [cx, cy] = project(END.x, 3.4, END.y);
   const ca = smooth(T_PIN + .45, T_PIN + .7, t);
   card.style.opacity = ca;
-  const cw = card.offsetWidth, ccx = clamp(cx, 100 + cw / 2, 980 - cw / 2);
+  const cw = card.offsetWidth, ccx = clamp(cx, SAFE_L + cw / 2, SAFE_R - cw / 2);
   card.style.transform = `translate(${ccx.toFixed(1)}px,${(cy - 18 + 16 * (1 - ca)).toFixed(1)}px) translate(-50%,-100%)`;
 }
 window.addEventListener('hf-seek', (e) => renderAt(e.detail.time));

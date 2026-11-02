@@ -6,10 +6,10 @@
 @font-face{font-family:'Inter';font-weight:700;src:url(fonts/inter-700-normal.woff2) format('woff2')}
 @font-face{font-family:'JB';font-weight:500;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format('woff2')}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:1080px;height:1920px;overflow:hidden;background:#0b0c0e}
-#root{position:relative;width:1080px;height:1920px;overflow:hidden;font-family:'Inter',sans-serif;
+html,body{width:__W__px;height:__H__px;overflow:hidden;background:#0b0c0e}
+#root{position:relative;width:__W__px;height:__H__px;overflow:hidden;font-family:'Inter',sans-serif;
   background:radial-gradient(ellipse 80% 55% at 42% 48%,#2a2d33 0%,#16181b 55%,#0a0b0d 100%)}
-#c{position:absolute;left:0;top:0;width:1080px;height:1920px;display:block}
+#c{position:absolute;left:0;top:0;width:__W__px;height:__H__px;display:block}
 #hd{position:absolute;left:110px;top:250px;font:500 26px 'JB';letter-spacing:.16em;color:#7d828a}
 #hd b{color:#e9e6e1;font-weight:500}
 svg{position:absolute;left:0;top:0}
@@ -21,10 +21,10 @@ svg{position:absolute;left:0;top:0}
 <script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
 </head>
 <body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="1080" data-height="1920">
-<canvas id="c" width="1080" height="1920"></canvas>
+<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="__W__" data-height="__H__">
+<canvas id="c" width="__W__" height="__H__"></canvas>
 <div id="hd"><b id="hdt"></b> / <span id="hds"></span></div>
-<svg width="1080" height="1920" viewBox="0 0 1080 1920" id="leads"></svg>
+<svg width="__W__" height="__H__" viewBox="0 0 __W__ __H__" id="leads"></svg>
 <div id="labels"></div>
 <script type="module">
 import * as THREE from "three";
@@ -37,7 +37,17 @@ document.getElementById('hds').textContent = SPEC.subtitle.toUpperCase();
 window.__hf = window.__hf || {}; window.__hf.buildReady = window.__hf.buildReady || {};
 let built; window.__hf.buildReady.breakdown = new Promise((r) => { built = r; });
 await Promise.all([document.fonts.load('700 230px Inter'), document.fonts.load('500 30px JB'), document.fonts.load('600 46px Inter'), document.fonts.load('500 40px Inter')]);
-const W = 1080, H = 1920;
+const F = window.FRAME || { format: '9:16', w: 1080, h: 1920, safe: { l: 100, t: 220, r: 100, b: 420 } };
+const W = F.w, H = F.h;
+// per frame shape: camera shift (phone sits left of centre), label column x, label rows (first, gap, min, max)
+const LAYOUTS = {
+  '9:16': { off: 150, lx: 690,  y0: 470, step: 170, gap: 150, minY: 400, maxY: 1440 },
+  '4:5':  { off: 150, lx: 650,  y0: 330, step: 160, gap: 145, minY: 260, maxY: 1110 },
+  '1:1':  { off: 160, lx: 620,  y0: 230, step: 150, gap: 135, minY: 180, maxY: 910, zoom: 1.08 },
+  '16:9': { off: 300, lx: 1150, y0: 230, step: 140, gap: 130, minY: 190, maxY: 880, zoom: 1.3 },
+};
+const LYT = LAYOUTS[F.format] || LAYOUTS['9:16'];
+{ const hd = document.getElementById('hd'); hd.style.left = (F.safe.l + 10) + 'px'; hd.style.top = (F.safe.t + 30) + 'px'; }
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const inOut3 = (x) => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
@@ -54,7 +64,8 @@ const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(-6, 12, 
 const rim = new THREE.DirectionalLight(0xffd9c2, 1.2); rim.position.set(8, 4, -6); scene.add(rim);
 scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x1a1b1e, .45));
 const camera = new THREE.PerspectiveCamera(26, W / H, .5, 200);
-camera.setViewOffset(W, H, 150, 0, W, H);
+camera.setViewOffset(W, H, LYT.off, 0, W, H);
+if (LYT.zoom) { camera.zoom = LYT.zoom; camera.updateProjectionMatrix(); }
 
 // ------------------------------------------------------------ geometry helpers
 const PW = 3.6, PL = 7.5, PR = .62;          // phone width, length, corner radius
@@ -193,7 +204,7 @@ const ANCHORS = [                              // where each label's leader line
   [0, [PW / 2, .08, .9]],                      // back
 ];
 const L = SPEC.labels.map((lb, i) => ['', lb[0], lb[1] || '', ANCHORS[i][0], ANCHORS[i][1]]).filter(l => l[1]);
-const LX = 690; let LY = L.map((_, i) => 470 + i * 170);
+const LX = LYT.lx; let LY = L.map((_, i) => LYT.y0 + i * LYT.step);
 const leads = document.getElementById('leads'), lab = document.getElementById('labels');
 const NS = 'http://www.w3.org/2000/svg';
 const lineEls = [], dotEls = [], labEls = [];
@@ -250,9 +261,9 @@ renderAt(3.4);
 {
   const ys = L.map(([n, tt, ss, pi, anchor]) => proj(parts[pi], anchor)[1]);
   const order = ys.map((y, i) => [y, i]).sort((a, b) => a[0] - b[0]);
-  let prev = -1e9; const GAP = 150; const out = [];
+  let prev = -1e9; const GAP = LYT.gap; const out = [];
   order.forEach(([y, i]) => { const yy = Math.max(y, prev + GAP); out[i] = yy; prev = yy; });
-  const over = Math.max(0, prev - 1440); LY = out.map(y => Math.max(400, y - over));
+  const over = Math.max(0, prev - LYT.maxY); LY = out.map(y => Math.max(LYT.minY, y - over));
   order.forEach(([y, i], k) => { labEls[i].querySelector('.n').textContent = String(k + 1).padStart(2, '0'); });
 }
 window.addEventListener('hf-seek', (e) => renderAt(e.detail.time));

@@ -5,17 +5,17 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#000;--fg:#f4f4f4;--soft:#bdbdbd}
 .light{--bg:#fff;--fg:#111;--soft:#555}
-html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg)}
-#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:var(--bg)}
-.cap{position:absolute;left:100px;width:880px;top:236px;text-align:center;font:400 44px/1.2 'Poppins';color:var(--fg);letter-spacing:-.005em}
+html,body{width:__W__px;height:__H__px;overflow:hidden;background:var(--bg)}
+#root{position:relative;width:__W__px;height:__H__px;overflow:hidden;background:var(--bg)}
+.cap{position:absolute;left:100px;width:880px;top:236px;text-align:center;font:400 44px/1.2 'Poppins';color:var(--fg);letter-spacing:-.005em;unicode-bidi:plaintext}
 svg{position:absolute;left:0;top:0}
 #bars{stroke:var(--fg)} #orbit{stroke:var(--fg)} #ring{stroke:var(--soft)} #sparks,#ball{fill:var(--fg)} #pulse{stroke:var(--fg)}
 </style></head>
 <body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="1080" data-height="1920">
+<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="__W__" data-height="__H__">
 <div class="cap" id="c1"></div>
 <div class="cap" id="c2" style="visibility:hidden"></div>
-<svg width="1080" height="1920" viewBox="0 0 1080 1920">
+<svg width="__W__" height="__H__" viewBox="0 0 __W__ __H__">
   <defs>
     <mask id="om" maskUnits="userSpaceOnUse" x="0" y="0" width="1080" height="1920">
       <circle id="omc" r="140" fill="none" stroke="#fff" stroke-width="14" stroke-dasharray="880" stroke-dashoffset="880"/>
@@ -24,12 +24,14 @@ svg{position:absolute;left:0;top:0}
       <ellipse id="emc" rx="220" ry="46" fill="none" stroke="#fff" stroke-width="14" stroke-dasharray="1000" stroke-dashoffset="1000"/>
     </mask>
   </defs>
+  <g id="stage">
   <g id="bars" fill="none" stroke-width="2.6"></g>
   <circle id="orbit" r="140" fill="none" stroke-width="2" stroke-dasharray="5 9" mask="url(#om)"/>
   <ellipse id="ring" rx="220" ry="46" fill="none" stroke-width="2" mask="url(#em)"/>
   <g id="sparks"></g>
   <circle id="pulse" cx="0" cy="0" r="34" fill="none" stroke-width="3" opacity="0"/>
   <circle id="ball" cx="0" cy="0" r="31"/>
+  </g>
 </svg>
 <script src="vendor/gsap.min.js"></script>
 <script>
@@ -39,6 +41,21 @@ const NS = 'http://www.w3.org/2000/svg';
 const gsap = window.gsap;
 const tl = gsap.timeline({ paused: true });
 if (SPEC.light) document.documentElement.classList.add('light');
+// the scene is drawn in the original 1080x1920 coordinates; other frame shapes scale and move the whole stage
+const F = window.FRAME || { format: '9:16', w: 1080, h: 1920 };
+const STAGES = {   // s: scale, tx/ty: offset of the stage, cap: caption top and size
+  '9:16': { s: 1,   tx: 0,   ty: 0,   cap: 236, size: 44 },
+  '4:5':  { s: .7,  tx: 194, ty: 160, cap: 150, size: 40 },
+  '1:1':  { s: .58, tx: 253, ty: 120, cap: 110, size: 38 },
+  '16:9': { s: .6,  tx: 663, ty: 132, cap: 96,  size: 40 },
+};
+const ST = STAGES[F.format] || STAGES['9:16'];
+document.getElementById('stage').setAttribute('transform', `translate(${ST.tx} ${ST.ty}) scale(${ST.s})`);
+for (const id of ['c1', 'c2']) {
+  const c = document.getElementById(id);
+  c.style.top = ST.cap + 'px'; c.style.fontSize = ST.size + 'px';
+  c.style.left = '100px'; c.style.width = (F.w - 200) + 'px';
+}
 const lines = SPEC.lines.length ? SPEC.lines : [''];
 document.getElementById('c1').textContent = lines[0];
 document.getElementById('c2').textContent = lines[1] || lines[0];

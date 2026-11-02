@@ -13,7 +13,7 @@ import anim  # noqa: E402
 
 DEFAULTS = {'destination': None, 'minutes': None, 'distance': None, 'unit': 'km',
             'places': ['North Quay', 'Botanic Gardens', 'Market Hall', 'Elm Park', 'The Canal'],
-            'accent': '#2f7cf6', 'seed': 7}
+            'accent': '#2f7cf6', 'seed': 7, 'words': {}}
 
 
 def check(spec):
@@ -27,4 +27,4 @@ def check(spec):
 
 
 if __name__ == '__main__':
-    anim.build(HERE / 'template.html', DEFAULTS, duration=lambda s: 4.0, three=True, check=check)
+    anim.build(HERE / 'template.html', DEFAULTS, duration=lambda s: 4.0, three=True, check=check, alpha_ok=False)

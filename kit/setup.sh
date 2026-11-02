@@ -20,7 +20,8 @@ say "installing Playwright's Chromium (the /zach-d-films and /stick-figure engin
 mkdir -p "$KIT/vendor"
 if [ ! -s "$KIT/vendor/gsap.min.js" ]; then
   say "fetching GSAP"
-  curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js -o "$KIT/vendor/gsap.min.js"
+  curl -fsSL https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js -o "$KIT/vendor/gsap.min.js" \
+    || { echo "cdnjs unreachable, taking GSAP from npm"; cp "$KIT/node_modules/gsap/dist/gsap.min.js" "$KIT/vendor/gsap.min.js"; }
 fi
 
 say "warming up HyperFrames (first run downloads it)"

@@ -1,6 +1,6 @@
 ---
 name: graph
-description: Makes a minimal line-graph animation for a reel. A smooth black line draws itself on white (or white on black) while one big number counts up with the tip, then lands on the final value. Use when the user runs /graph or asks for a growth chart, a "0 to 100K" number animation or an animated stat.
+description: Makes a minimal line-graph animation for a reel. A smooth black line draws itself on white (or white on black) while one big number counts up with the tip, then lands on the final value. Use when the user runs /graph or asks for a growth chart, a "0 to 100K" number animation or an animated stat. Renders 9:16, 16:9, 1:1 or 4:5, in English, Russian or Hebrew, optionally with a transparent background for editing.
 ---
 
 # /graph
@@ -31,7 +31,7 @@ Needs ffmpeg and Node.
 2. **Spec.** Write `<name>.graph.json` (below) in the user's folder.
 3. **Build.** Run `python3 "$SKILL_DIR/build.py" <spec.json>`. It takes about 10 seconds. Add `--snap 3.5` for a quick PNG instead of a video.
 4. **Check** `<name>.graph.sheet.jpg`: the number fits on one line and the last frame shows the final value.
-5. **Hand over** the mp4 path.
+5. **Hand over** the video path (`.mp4`, or `.mov` / `.webm` with `alpha`).
 
 ## Spec
 ```json
@@ -50,6 +50,14 @@ Needs ffmpeg and Node.
 - **`prefix`**, **`suffix`**, **`decimals`**: `"$"`, `"%"`, `" kg"`, and so on. The number shrinks itself if it gets long.
 - **`dark`**: white line on black.
 - **`hold`** (optional): extra seconds to hold the last frame. **`out`** (optional): the output path.
+
+## Frame, language, transparency
+Shared by every quick skill; details in `kit/FRAME.md`. Decide them from the task before writing the spec:
+- **`format`**: `"9:16"` (default, reels and stories), `"16:9"` (film or YouTube insert), `"4:5"` or `"1:1"` (feed posts).
+- **`lang`**: `"en"`, `"ru"` or `"he"`. Left out, it follows the spec's text. Write the text in that language yourself; Hebrew lays out right to left.
+- **`alpha`**: `true` for a transparent ProRes 4444 `.mov` an editor lays over footage (`"webm"` for the web). The sheet shows it over grey.
+- **`safe`**: the box on the contact sheet. Defaults to Instagram for 9:16 and a 5% broadcast margin otherwise.
+- Numbers follow the language: `34,000` in English, `34 000` in Russian. Hebrew puts the label and the number on the right; the time axis still runs left to right.
 
 ## Taste
 - One number, one line. The label is a plain noun ("Followers", "Monthly revenue"), not a slogan.

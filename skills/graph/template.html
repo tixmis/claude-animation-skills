@@ -6,19 +6,19 @@
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#fff;--fg:#000;--mute:#8c8c8c;--axis:#a3a3a3;--grid:#e6e6e6}
 .dark{--bg:#000;--fg:#fff;--mute:#8a8a8a;--axis:#707070;--grid:#262626}
-html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg)}
-#root{position:relative;width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:var(--fg)}
-#lab{position:absolute;left:120px;top:330px;font:500 34px 'Inter';color:var(--mute);white-space:nowrap}
-#num{position:absolute;left:114px;top:382px;font:700 180px/1 'Inter Tight';letter-spacing:-.05em;font-variant-numeric:tabular-nums;white-space:nowrap}
+html,body{width:__W__px;height:__H__px;overflow:hidden;background:var(--bg)}
+#root{position:relative;width:__W__px;height:__H__px;overflow:hidden;background:var(--bg);color:var(--fg)}
+#lab{position:absolute;left:120px;top:330px;font:500 34px 'Inter';unicode-bidi:plaintext;color:var(--mute);white-space:nowrap}
+#num{position:absolute;left:114px;top:382px;unicode-bidi:plaintext;font:700 180px/1 'Inter Tight';letter-spacing:-.05em;font-variant-numeric:tabular-nums;white-space:nowrap}
 svg{position:absolute;left:0;top:0}
 .grid{stroke:var(--grid)} .base,#drop,#line{stroke:var(--fg)} #halo{fill:var(--fg)} #tip{fill:var(--fg);stroke:var(--bg)}
 .mo{font:500 26px 'Inter';fill:var(--axis)}
 </style></head>
 <body>
-<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="1080" data-height="1920">
+<div id="root" data-composition-id="main" data-start="0" data-duration="__DURATION__" data-fps="30" data-width="__W__" data-height="__H__">
 <div id="lab"></div>
 <div id="num">0</div>
-<svg width="1080" height="1920" viewBox="0 0 1080 1920">
+<svg width="__W__" height="__H__" viewBox="0 0 __W__ __H__">
   <line class="grid" id="g1" x1="120" y1="1050" x2="120" y2="1050" stroke-width="2"/>
   <line class="grid" id="g2" x1="120" y1="770" x2="120" y2="770" stroke-width="2"/>
   <line class="base" id="g0" x1="120" y1="1330" x2="120" y2="1330" stroke-width="2"/>
@@ -36,7 +36,29 @@ const gsap = window.gsap;
 const tl = gsap.timeline({ paused: true });
 if (SPEC.dark) document.documentElement.classList.add('dark');
 document.getElementById('lab').textContent = SPEC.label || '';
-const X0 = 120, X1 = 940, Y0 = 1330, Y1 = 770;            // chart box: 0 at Y0, the highest value at Y1
+// chart box per frame shape: 0 at Y0, the highest value at Y1 (9:16 is the original reel layout)
+const LAYOUTS = {
+  '9:16': { X0: 120, X1: 940, Y0: 1330, Y1: 770, lab: 330, num: 382, size: 180, labSize: 34, monY: 1388, monSize: 26 },
+  '4:5':  { X0: 120, X1: 950, Y0: 1110, Y1: 640, lab: 170, num: 218, size: 170, labSize: 32, monY: 1166, monSize: 26 },
+  '1:1':  { X0: 110, X1: 960, Y0: 880,  Y1: 480, lab: 118, num: 164, size: 150, labSize: 30, monY: 934,  monSize: 24 },
+  '16:9': { X0: 200, X1: 1720, Y0: 880, Y1: 470, lab: 120, num: 166, size: 160, labSize: 30, monY: 934,  monSize: 24 },
+};
+const F = window.FRAME || { format: '9:16', w: 1080, h: 1920, rtl: false };
+const LY = LAYOUTS[F.format] || LAYOUTS['9:16'];
+const X0 = LY.X0, X1 = LY.X1, Y0 = LY.Y0, Y1 = LY.Y1;
+{
+  const lab = document.getElementById('lab'), nm = document.getElementById('num');
+  lab.style.top = LY.lab + 'px'; lab.style.fontSize = LY.labSize + 'px';
+  nm.style.top = LY.num + 'px';
+  if (F.rtl) {                                            // Hebrew: the text hangs from the right edge of the chart
+    for (const [el, d] of [[lab, 0], [nm, 6]]) { el.style.left = 'auto'; el.style.right = (F.w - X1 - d) + 'px'; el.style.textAlign = 'right'; }
+  } else { lab.style.left = X0 + 'px'; nm.style.left = (X0 - 6) + 'px'; }
+  for (const [id, y] of [['g0', Y0], ['g1', (Y0 + Y1) / 2], ['g2', Y1]]) {
+    const g = document.getElementById(id);
+    for (const a of ['x1', 'x2']) g.setAttribute(a, X0);
+    for (const a of ['y1', 'y2']) g.setAttribute(a, y);
+  }
+}
 const V = SPEC.values.map(Number);
 const M = SPEC.labels || [];
 const vmax = Math.max(...V) || 1;
@@ -44,14 +66,14 @@ const last = V[V.length - 1] || 1;
 const FINAL = SPEC.final != null ? Number(SPEC.final) : last;
 const scale = FINAL / last;                                // the count shows (value under the tip) x scale
 const dec = SPEC.decimals || 0;
-const fmt = (x) => (SPEC.prefix || '') + x.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (SPEC.suffix || '');
+const fmt = (x) => (SPEC.prefix || '') + x.toLocaleString((window.FRAME && FRAME.locale) || 'en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (SPEC.suffix || '');
 // shrink the big number if its widest state would run past the right margin
 const num = document.getElementById('num');
 {
   const s = fmt(FINAL);
   let em = 0;
-  for (const ch of s) em += /[0-9]/.test(ch) ? .56 : /[,.]/.test(ch) ? .24 : ch === ' ' ? .25 : /[A-Z$€£%+]/.test(ch) ? .62 : .54;
-  const size = Math.min(180, 850 / Math.max(1, em));
+  for (const ch of s) em += /[0-9]/.test(ch) ? .56 : /[,.]/.test(ch) ? .24 : /[ \u00a0\u202f]/.test(ch) ? .25 : /[A-Z$€£%+]/.test(ch) ? .62 : .54;
+  const size = Math.min(LY.size, (X1 - X0 + 30) / Math.max(1, em));
   num.style.fontSize = size.toFixed(0) + 'px';
 }
 const px = i => X0 + i * (X1 - X0) / (V.length - 1);
@@ -76,7 +98,7 @@ const every = Math.ceil(M.length / 12);
 M.forEach((m, i) => {
   if (i >= V.length || i % every) return;
   const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  t.setAttribute('class', 'mo'); t.setAttribute('x', px(i)); t.setAttribute('y', 1388); t.setAttribute('text-anchor', 'middle');
+  t.setAttribute('class', 'mo'); t.setAttribute('x', px(i)); t.setAttribute('y', LY.monY); t.style.fontSize = LY.monSize + 'px'; t.setAttribute('text-anchor', 'middle');
   t.setAttribute('opacity', 0); t.id = 'm' + i; t.textContent = m; mg.appendChild(t);
 });
 const tip = document.getElementById('tip'), halo = document.getElementById('halo');

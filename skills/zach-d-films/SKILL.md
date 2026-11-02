@@ -66,3 +66,10 @@ For a live preview, serve the project (`python3 -m http.server 8000`) and open `
 - Bright blue studio sky, soft daylight, metal that reads as metal. Cartoon people are simple shapes with big expressive faces; keep them in proportion with the props.
 - Slow motion on the impact, a short camera shake, sparks, bloom on hot things. The red ripple shows force spreading.
 - Quick cuts on caption beats; one dip to black on the "But" turn. Captions are white, bold, 1 to 3 words.
+
+## Languages
+The engine draws its own captions, so Russian or Hebrew needs three things the quick skills get from the kit:
+- **Voice:** the free Kokoro voice and `kit/words.py` (Parakeet word timings) are English-only. For Russian or Hebrew use the user's own recording, and time the captions by hand from the waveform or with a multilingual aligner.
+- **Fonts:** add Heebo (Hebrew) or a Cyrillic font from `kit/fonts/intl/` to the project's fonts and its CSS, since the engine does not go through the kit's font injection.
+- **Direction:** Hebrew captions need `dir="rtl"` on the caption element.
+Say this to the user before starting a non-English explainer.
