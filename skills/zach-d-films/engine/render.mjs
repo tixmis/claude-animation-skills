@@ -17,7 +17,8 @@ const port = server.address().port;
 
 // GL=swiftshader forces software WebGL (slow, but works on machines without a usable GPU)
 const GL = process.env.GL === 'swiftshader' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--enable-gpu'];
-const browser = await chromium.launch({ args: [...GL, '--ignore-gpu-blocklist'] });
+// CHROME=/path/to/chrome uses an installed browser instead of Playwright's own download
+const browser = await chromium.launch({ args: [...GL, '--ignore-gpu-blocklist'], ...(process.env.CHROME ? { executablePath: process.env.CHROME } : {}) });
 const page = await browser.newPage({ viewport: { width: 720, height: 1280 } });
 page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') console.log('[page]', m.text()); });
 page.on('pageerror', e => console.log('[pageerror]', e.message));
